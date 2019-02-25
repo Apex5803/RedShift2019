@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 package frc.robot;
-import com.ctre.phoenix.*;
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 /**
  * The RobotMap is a mapping from the ports sensors and actuators are wired into
@@ -14,13 +14,18 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * the wiring easier and significantly reduces the number of magic numbers
  * floating around.
  */
+import frc.robot.utils.ControllerConfig;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.robot.models.*;
+import frc.robot.commands.ReleaseLift;
+
 public class RobotMap {
 
-//drive train stuff
+  // drive train stuff
   public static BobTalonSRX R1;
   public static BobTalonSRX L1;
 
@@ -28,65 +33,70 @@ public class RobotMap {
   public static VictorSPX R3;
   public static VictorSPX L2;
   public static VictorSPX L3;
-//lift stuff
+  // lift stuff
   public static TalonSRX Lift1;
-  public static TalonSRX Lift2;
+  public static VictorSPX Lift2;
   public static DoubleSolenoid LiftSolenoid1;
   public static DoubleSolenoid LiftSolenoid2;
-//intake/eater stuff
+  // intake/eater stuff
   public static TalonSRX Intake;
 
-// crossbow stuff
+  // crossbow stuff
   public static DoubleSolenoid Crossbow1;
   public static DoubleSolenoid Crossbow2;
 
-//Ramp (climber) stuff
-public static DoubleSolenoid ClimberRamp1;
-public static DoubleSolenoid ClimberRamp2;
-public static TalonSRX Climber1;
-public static TalonSRX Climber2;
+  // Ramp (climber) stuff
+  public static DoubleSolenoid ClimberPneu1;
+  public static DoubleSolenoid ClimberLock1;
+  public static TalonSRX Climber1;
+  public static VictorSPX Climber2;
 
+  // Gyro
+  public static PigeonIMU pigeon;
 
+  public static void init() {
+    System.out.println("Initializing Speed Controllers");
 
+    // left side drive base
+    L1 = new BobTalonSRX(PortMap.L1, false, "left"); // Create lead drive talon with inversion settings
+    ControllerConfig.setL1(L1, false);
+    L2 = new VictorSPX(PortMap.L2);
+    ControllerConfig.setDriveFollower(L2, L1, L1.getInverted());
+    L3 = new VictorSPX(PortMap.L3);
+    ControllerConfig.setDriveFollower(L3, L1, L1.getInverted());
 
-public static void init(){
-     System.out.println("Initializing Speed Controllers");
-//left side drive base
-L1 = new BobTalonSRX(PortMap.L1);
-L2 = new VictorSPX(PortMap.L2);
-L2.follow(L1);
-L3 = new VictorSPX(PortMap.L3);
-L3.follow(L1);
-//right side drive base
-R1 = new BobTalonSRX(PortMap.R1);
-R2 = new VictorSPX(PortMap.R2);
-R2.follow(R1);
-R3 = new VictorSPX(PortMap.R3);
-R3.follow(R1);
-//lift stuff
-Lift1 = new TalonSRX(PortMap.Lift1);
-Lift2 = new TalonSRX(PortMap.Lift2);
-Lift2.follow(Lift1);
-LiftSolenoid1 = new DoubleSolenoid(PortMap.Lift_Solenoid1_Forward_Channel, PortMap.Lift_Solenoid1_Reverse_Channel);
-LiftSolenoid2 = new DoubleSolenoid(PortMap.Lift_Solenoid2_Forward_Channel, PortMap.Lift_Solenoid2_Reverse_Channel);
-//intake stuff
-Intake = new TalonSRX(PortMap.Intake);
-//crossbow stuff
-Crossbow1 = new DoubleSolenoid(PortMap.Crossbow1_Forward_Channel, PortMap.Crossbow1_Reverse_Channel);
-Crossbow2 = new DoubleSolenoid(PortMap.Crossbow2_Forward_Channel, PortMap.Crossbow2_Reverse_Channel);
-//climber stuff
-ClimberRamp1 = new DoubleSolenoid(PortMap.ClimberSolenoid1_Forward_Channel, PortMap.ClimberSolenoid1_Reverse_Channel);
-ClimberRamp2 = new DoubleSolenoid(PortMap.ClimberSolenoid2_Forward_Channel, PortMap.ClimberSolenoid2_Reverse_Channel);
+    // right side drive base
+    R1 = new BobTalonSRX(PortMap.R1, true, "right"); // Create lead drive talon with inversion settings
+    ControllerConfig.setR1(R1, true);
+    R2 = new VictorSPX(PortMap.R2);
+    ControllerConfig.setDriveFollower(R2, R1, R1.getInverted());
+    R3 = new VictorSPX(PortMap.R3);
+    ControllerConfig.setDriveFollower(R3, R1, R1.getInverted());
+    // lift stuff
+    Lift1 = new TalonSRX(PortMap.Lift1);
+    ControllerConfig.setLiftLead(Lift1);
+    Lift2 = new VictorSPX(PortMap.Lift2);
+    ControllerConfig.setLiftFollower(Lift2, Lift1, false);
+    LiftSolenoid1 = new DoubleSolenoid(PortMap.Lift_Solenoid1_Forward_Channel, PortMap.Lift_Solenoid1_Reverse_Channel);
+    // new ReleaseLift();
 
-Climber1 = new TalonSRX(PortMap.Climber1);
-Climber2 = new TalonSRX(PortMap.Climber2);
-Climber2.follow(Climber1);
-}
+    // intake stuff
+    Intake = new TalonSRX(PortMap.Intake);
+    // //crossbow stuff
+    Crossbow1 = new DoubleSolenoid(PortMap.Crossbow1_Forward_Channel, PortMap.Crossbow1_Reverse_Channel);
+    // //climber stuff
+    ClimberPneu1 = new DoubleSolenoid(PortMap.ClimberSolenoid1_Forward_Channel,
+        PortMap.ClimberSolenoid1_Reverse_Channel);
+    ClimberLock1 = new DoubleSolenoid(PortMap.ClimberLockSolenoid1_Forward_Channel,
+        PortMap.ClimberLockSolenoid1_Reverse_Channel);
+    Climber1 = new TalonSRX(PortMap.Climber1);
+    ControllerConfig.setClimbLead(Climber1);
+    Climber2 = new VictorSPX(PortMap.Climber2);
+    ControllerConfig.setClimbFollower(Climber2, Climber1);
 
-
-
-
-
+    // Climber2.setInverted(true);
+    pigeon = new PigeonIMU(PortMap.Pidgeon);
+  }
 
   // For example to map the left and right motors, you could define the
   // following variables to use with your drivetrain subsystem.
